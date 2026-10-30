@@ -45,10 +45,9 @@ $$ y\[n\] = x\[n\] \* h\[n\] $$
 The impulse response contains a direct sound and several delayed,
 attenuated reflections:
 
-\[ h\[n\] = `\delta[n] `{=tex}+ `\sum`{=tex}\_{i=1}\^{M}
-a_i`\delta[n-d_i]`{=tex}\]
+$$ h[n] = \delta[n] + \sum_{i=1}^{M} a_i \delta[n-d_i], $$
 
-where (a_i) is the amplitude of reflection (i), and (d_i) is its delay
+where $a_i$ is the amplitude of reflection $i$, and $d_i$ is its delay
 in samples.
 
 **Processing steps** 1. Load the guitar recording and obtain its
