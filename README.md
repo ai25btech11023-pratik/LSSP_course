@@ -62,14 +62,10 @@ in samples.
 
 - **Input audio file and sampling frequency:** Set from the selected recording.
 - **Reflection amplitudes:** The values of \(a_i\) defined in `exp1.py`.
-- **Reflection delays:** The values of \(d_i\) defined in `exp1.py`. Check whether the code specifies them in seconds or samples.
+- **Reflection delays:** The values of \(d_i\) defined in `exp1.py`.
 - **Number of reflections:** \(M\), the number of delayed reflection taps, excluding the direct impulse.
-- **Spectrum display:** State whether the plot uses linear magnitude or magnitude in decibels. For a magnitude spectrum expressed in dB, use:
-
-$$
-X_{\mathrm{dB}}[k] = 20\log_{10}\left(|X[k]|+\epsilon\right)
-$$
-
+- **Spectrum display:** the plot uses linear magnitude for spectrum plot against frequency.
+- 
 ### Experiment 2 — Musical Effect using an LTV System
 
 **Goal:** Create a time-varying delay effect. Unlike a fixed-delay echo, the delay changes periodically over time.
@@ -105,13 +101,10 @@ where:
 **Parameters to report**
 
 - $\alpha$: Delayed-signal gain/mix in `exp2.py`.
-- $D_0$ : Nominal delay, in the units used by the code.
-- $\Delta D$: Delay variation, in the units used by the code.
+- $D_0$ : Nominal delay in ms in `exp2.py`.
+- $\Delta D$: Delay variation in ms in `exp2.py`.
 - $f_m$: Modulation frequency in Hz.
 - $f_s$: Sampling frequency of the input audio.
-- **Output duration:** Process the full input recording if that is the intended comparison.
-
-Copy the actual values from the parameter definitions in `exp2.py` into the report. If the implementation uses a fixed number of samples for delay, state that the delay is in samples; if it converts seconds to samples, state both the time and sample values.
 
 ## Libraries and Their Uses
 
