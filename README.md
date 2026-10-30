@@ -1,38 +1,34 @@
 # Simple Audio Signal Processing
 
-Course project for **EE1206/EE3900: Linear Systems and Signal
-Processing**.
+## Course project for EE1206/EE3900: Linear Systems and Signal Processing.
 
 This project explores basic digital signal processing (DSP) techniques
-on a guitar recording. It focuses on implementing the processing steps,
+on a guitar or string recording. It focuses on implementing the processing steps,
 listening to the processed audio, and comparing waveforms and magnitude
 spectra.
 
-> **Scope note:** This README explains Experiments 1 and 2. Experiment 3
-> is included in the folder structure only, as requested.
 
 ## Folder Structure
 
 ``` text
-project/
+LSSP_course/
 ├── README.md
-├── exp1.py                 # Experiment 1: LTI reverberation
-├── task2.py                # Experiment 2: LTV time-varying delay effect
-├── exp3.py                 # Experiment 3: two-mode / multi-mode equalizer (not explained here)
-├── utils.py                # Shared helper functions, if used by the scripts
-├── data/
-│   └── guitar.wav          # Input audio recording (example filename)
-├── output/
-│   ├── exp1/               # Reverberant audio and plots
-│   ├── task2/              # Time-varying-delay audio and plots
-│   └── exp3/               # Equalizer output and plots
-└── requirements.txt        # Python dependencies (if maintained)
+│── Exp1/                  # Experiment 1: LTI reverberation
+│   ├── exp1.py
+│   ├── Audio_outputs/
+│   └──plots/                  
+├── Exp2/                  # Experiment 2: LTV time-varying delay effect
+│   ├── exp2.py
+│   ├── Audio_outputs/
+│   └── plots/                 
+├── Exp3/                  # Experiment 3: two-mode / multi-mode equalizer
+│   ├── exp3.py
+│   ├── Audio_outputs/
+│   └── plots/                
+├── recordings/            # Input audio recording
+│   └── LP_Lick10_FN.wav   
+└── requirements.txt       # Python dependencies
 ```
-
-The names and locations above are a suggested layout. If your actual
-files use different names (for example, `exp1(2).py`) or your audio is
-stored elsewhere, update the tree and the paths in the commands below to
-match your folder.
 
 ## Experiments
 
@@ -44,7 +40,7 @@ through a linear time-invariant (LTI) system.
 The output is formed by convolving the input signal (x\[n\]) with an
 impulse response (h\[n\]):
 
-\[ y\[n\] = x\[n\] \* h\[n\] \]
+$$ y\[n\] = x\[n\] \* h\[n\] $$
 
 The impulse response contains a direct sound and several delayed,
 attenuated reflections:
