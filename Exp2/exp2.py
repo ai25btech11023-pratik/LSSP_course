@@ -114,94 +114,91 @@ plt.close()
 
 
 # ====================================================
-# MANUAL FFT IMPLEMENTATION
-# Radix-2 Cooley-Tukey algorithm
+# MANUAL DFT IMPLEMENTATION
 
-samples = len(x)
+def dft(x):
+    N = len(x)
+    X = []
 
-def fft(signal):
-    """Compute the forward FFT """
-    N = len(signal)
-    if N == 0:
-        return []
-    if N & (N - 1):
-        raise ValueError("FFT input length must be a power of two.")
+    for k in range(N):
+        real = 0.0
+        imag = 0.0
 
-    X = [complex(value, 0.0) for value in signal]
+        for n in range(N):
+            angle = -2.0 * math.pi * k * n / N
 
-    # Bit-reversal permutation
-    j = 0
-    for i in range(1, N):
-        bit = N >> 1
-        while j & bit:
-            j ^= bit
-            bit >>= 1
-        j ^= bit
-        if i < j:
-            X[i], X[j] = X[j], X[i]
+            real += x[n] * math.cos(angle)
+            imag += x[n] * math.sin(angle)
 
-    # Butterfly stages
-    length = 2
-    while length <= N:
-        half = length // 2
-        angle = -2.0 * math.pi / length
-        w_real = math.cos(angle)
-        w_imag = math.sin(angle)
-
-        for start in range(0, N, length):
-            wr, wi = 1.0, 0.0
-            for offset in range(half):
-                even_index = start + offset
-                odd_index = even_index + half
-                even = X[even_index]
-                odd = X[odd_index]
-
-                t = complex(
-                    wr * odd.real - wi * odd.imag,
-                    wr * odd.imag + wi * odd.real
-                )
-                X[even_index] = even + t
-                X[odd_index] = even - t
-
-                next_wr = wr * w_real - wi * w_imag
-                next_wi = wr * w_imag + wi * w_real
-                wr, wi = next_wr, next_wi
-
-        length *= 2
+        X.append(complex(real, imag))
 
     return X
 
+# ==========================================
+# CALCULATE MAGNITUDE SPECTRUM USING DFT
+# ==========================================
 
-def fft_magnitude(signal, fs, N= samples):
+def dft_magnitude(x, fs):
+    N = len(x)
 
-    N = min(N, len(signal))
     if N < 2:
         return [], []
 
-    # Use the largest power of two no greater than the available length.
-    N = 1 << (N.bit_length() - 1)
-    segment = [float(signal[i]) for i in range(N)]
-
-    # Remove DC offset before calculating the spectrum.
-    mean_value = sum(segment) / N
-    segment = [sample - mean_value for sample in segment]
-    spectrum = fft(segment)
+    # Compute DFT
+    X = dft(x)
 
     frequencies = []
     magnitudes = []
+
+    # Only positive frequencies
     for k in range(N // 2 + 1):
-        frequencies.append(k * fs / N)
-        magnitude = abs(spectrum[k]) / N
-        if k != 0 and k != N // 2:
-            magnitude *= 2.0
+
+        frequency = k * fs / N
+        magnitude = abs(X[k]) / N
+
+        # Single-sided amplitude spectrum
+        if k != 0 and not (N % 2 == 0 and k == N // 2):
+            magnitude *= 2
+
+        frequencies.append(frequency)
         magnitudes.append(magnitude)
 
     return frequencies, magnitudes
 
-print("Calculating original spectrum...")
-freq_x, mag_x = fft_magnitude(x, fs)
-print("Original spectra calculated.")
+threshold = 0.001
+active_indices = np.where(np.abs(x) > threshold)[0]
 
+if len(active_indices) == 0:
+    raise ValueError("No active guitar samples found.")
+
+start_index = int(active_indices[0])
+
+print("Guitar starts at:", start_index / fs, "seconds")
+
+segment_length = 2048
+
+x_segment = x[start_index:start_index + segment_length]
+y_segment = y[start_index:start_index + segment_length]
+
+if len(x_segment) < segment_length or len(y_segment) < segment_length:
+    raise ValueError("Not enough samples available for DFT analysis.")
+
+print("DFT segment samples:", len(x_segment))
+print("DFT segment duration:", len(x_segment) / fs, "seconds")
+
+print("Calculating original magnitude spectrum using DFT...")
+
+freq_x, mag_x = dft_magnitude(
+    x_segment, fs
+)
+
+print("Calculating reverberated magnitude spectrum using DFT...")
+
+freq_y, mag_y = dft_magnitude(
+    y_segment, fs
+)
+
+print("Both DFT magnitude spectra calculated!")
 # ====================================================
 # SAVE THE PROCESSED AUDIO
 
@@ -228,9 +225,11 @@ y_test, _ = time_varying_delay(
     x, fs, alpha=alpha, D0_ms=D0_ms,
     deltaD_ms=deltaD_ms, fm=fm
 )
+segment_length = 2048
+y_segment = y_test[start_index:start_index + segment_length]
 
 print("Calculating processed spectrum...")
-freq_y, mag_y = fft_magnitude(y_test, fs)
+freq_y, mag_y = dft_magnitude(y_segment, fs)
 print("spectra calculated.")
 
 # Plot the original and processed signals
@@ -238,16 +237,22 @@ N = len(x)
 t = np.arange(N) / fs
 
 plt.figure(figsize=(12, 5))
-plt.plot(t, x[:N], label="Original guitar")
-plt.plot(t, y_test[:N], label=f"Output (f_m = {fm} Hz)")
-
+plt.subplot(2,1,1)
+plt.plot(t, x[:N])
 plt.xlabel("Time (seconds)")
 plt.ylabel("Amplitude")
-plt.title(f"waveform_comparison_fm{fm} Hz")
+plt.title("original waveform")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-
+plt.subplot(2,1,2)
+plt.plot(t, y_test[:N],)
+plt.xlabel("Time (seconds)")
+plt.ylabel("Amplitude")
+plt.title(f"time delay effect at fm = {fm}Hz")
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
 plt.savefig(f"../Exp2/plots/waveform_comparison_fm{fm}.png", dpi=300)
 plt.show()
 plt.close()
@@ -279,34 +284,49 @@ y_test, _ = time_varying_delay(
     deltaD_ms=deltaD_ms, fm=fm
 )
 
+segment_length = 2048
+
+y_segment = y_test[start_index:start_index + segment_length]
+
 print("Calculating processed spectrum...")
-freq_y, mag_y = fft_magnitude(y_test, fs)
+freq_y, mag_y = dft_magnitude(y_segment, fs)
 print("spectra calculated.")
 
 # Plot original and processed signals
 N = len(y_test)
 t = np.arange(N) / fs
 
-plt.figure(figsize=(12, 5))
-plt.plot(t, x[:N], label="Original guitar")
-plt.plot(t, y_test[:N], label=f"Output at delay variation {deltaD_ms} ms")
+fig2 = plt.figure(figsize=(12, 5))
+plt.subplot(2,1,1)
+plt.plot(t, x[:N])
 plt.xlabel("Time (seconds)")
 plt.ylabel("Amplitude")
-plt.title(f"Effect of Delay Variation ({deltaD_ms} ms)")
+plt.title("original waveform")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
+
+plt.subplot(2,1,2)
+plt.plot(t, y_test[:N])
+plt.xlabel("Time (seconds)")
+plt.ylabel("Amplitude")
+plt.title(f"waveform_delay_var{deltaD_ms} ms")
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+
 plt.savefig(f"../Exp2/plots/waveform_comparison_dD{deltaD_ms}.png", dpi=300)
 plt.show()
-plt.close()
+plt.close(fig2)
 
 # Plot both spectra
+
 plt.figure(figsize=(12, 5))
 plt.plot(freq_x, mag_x, label="Original guitar")
 plt.plot(freq_y, mag_y, label="Time-varying delay output")
 plt.xlabel("Frequency (Hz)")
 plt.ylabel("Single-sided magnitude")
-plt.title(f"Effect of Delay Variation ({deltaD_ms} ms)")
+plt.title(f"magnitude_spectra_comparison_dD{deltaD_ms} ms")
 plt.xlim(0, 5000)
 plt.legend()
 plt.grid(True)
@@ -314,5 +334,6 @@ plt.tight_layout()
 plt.savefig(f"../Exp2/plots/spectra_comparison_dD{deltaD_ms}.png", dpi=300)
 plt.show()
 plt.close()
+
 
 
