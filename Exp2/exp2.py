@@ -1,10 +1,5 @@
 # Experiment 2: Musical effects using LTV Systems
 
-# y[n] = x[n] + \delta_D x[n-D[n]], \qquad D[n] = D_0 + \Delta D\sin(2\pi f_m n/f_s). 
-
-# ====================================================
-# IMPORTS and PREPROCESSING THE GUITAR AUDIO
-
 import math
 from pathlib import Path
 
@@ -12,14 +7,16 @@ import numpy as np
 import soundfile as sf
 import matplotlib.pyplot as plt
 
-# I/O paths
+# file paths
 input_path = "../recordings/LP_Lick10_FN.wav"
 output_dir = Path("../Exp2/Audio_outputs")
+plot_dir = Path("../Exp2/plots")
 output_dir.mkdir(parents=True, exist_ok=True)
+plot_dir.mkdir(parents=True, exist_ok=True)
 
 x, fs = sf.read(input_path)
 
-# Convert stereo audio to mono by averaging the channels.
+# average the channels if the recording is stereo
 if x.ndim == 2:
     x = np.mean(x, axis=1)
 
@@ -32,6 +29,7 @@ print("Number of samples:", N)
 print("Duration:", duration, "seconds")
 print("Input peak amplitude:", np.max(np.abs(x)))
 
+# plot the original recording
 plt.figure(figsize=(12, 4))
 plt.plot(time, x)
 plt.xlabel("Time (seconds)")
@@ -39,17 +37,16 @@ plt.ylabel("Amplitude")
 plt.title("Original Guitar Audio")
 plt.grid(True)
 plt.tight_layout()
-plt.savefig("../Exp2/plots/original_guitar_waveform.png", dpi=300)
+plt.savefig(plot_dir /"original_guitar_waveform.png", dpi=300)
 plt.show()
 plt.close()
 
-# ====================================================
-# IMPLEMENT THE TIME-VARYING DELAY SYSTEM
+# time-varying delay
 
 def time_varying_delay(x, fs, alpha=0.5, D0_ms=15.0,
                        deltaD_ms=5.0, fm=0.5):
     
-    # Apply y[n] = x[n] + delta_D * x[n-D[n]] with linear interpolation.
+    # estimate delayed samples using linear interpolation
 
     x = np.asarray(x, dtype=float)
     n_samples = len(x)
@@ -108,13 +105,12 @@ plt.ylabel("Delay (milliseconds)")
 plt.title("Time-Varying Delay")
 plt.grid(True)
 plt.tight_layout()
-plt.savefig("../Exp2/plots/delay_curve.png", dpi=300)
+plt.savefig(plot_dir /"delay_curve.png", dpi=300)
 plt.show()
 plt.close()
 
 
-# ====================================================
-# MANUAL DFT IMPLEMENTATION
+# manual dft
 
 def dft(x):
     N = len(x)
@@ -134,9 +130,7 @@ def dft(x):
 
     return X
 
-# ==========================================
-# CALCULATE MAGNITUDE SPECTRUM USING DFT
-# ==========================================
+# calculate the magnitude spectrum
 
 def dft_magnitude(x, fs):
     N = len(x)
@@ -144,19 +138,18 @@ def dft_magnitude(x, fs):
     if N < 2:
         return [], []
 
-    # Compute DFT
     X = dft(x)
 
     frequencies = []
     magnitudes = []
 
-    # Only positive frequencies
+    # keep zero and positive frequencies
     for k in range(N // 2 + 1):
 
         frequency = k * fs / N
         magnitude = abs(X[k]) / N
 
-        # Single-sided amplitude spectrum
+        # single-sided magnitude
         if k != 0 and not (N % 2 == 0 and k == N // 2):
             magnitude *= 2
 
@@ -199,10 +192,10 @@ freq_y, mag_y = dft_magnitude(
 )
 
 print("Both DFT magnitude spectra calculated!")
-# ====================================================
-# SAVE THE PROCESSED AUDIO
 
-# apply one global gain
+# save the processed audio
+
+# reduce the saved audio level if needed
 peak = float(np.max(np.abs(y))) if len(y) else 0.0
 if peak > 1.0:
     y_save = y / peak
@@ -214,8 +207,7 @@ output_audio_path = output_dir / f"processed_guitar(fm{fm}_dD{deltaD_ms}).wav"
 sf.write(str(output_audio_path), y_save, fs, subtype="PCM_16")
 
 
-# ====================================================
-# EXPERIMENT WITH MODULATION FREQUENCY
+# output with this modulation frequency
 
 fm = 0.5  # Modulation frequency in Hz
 
@@ -232,7 +224,8 @@ print("Calculating processed spectrum...")
 freq_y, mag_y = dft_magnitude(y_segment, fs)
 print("spectra calculated.")
 
-# Plot the original and processed signals
+# compare the original and processed waveforms
+
 N = len(x)
 t = np.arange(N) / fs
 
@@ -253,12 +246,12 @@ plt.title(f"time delay effect at fm = {fm}Hz")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-plt.savefig(f"../Exp2/plots/waveform_comparison_fm{fm}.png", dpi=300)
+plt.savefig(plot_dir /f"waveform_comparison_fm{fm}.png", dpi=300)
 plt.show()
 plt.close()
 
 
-# Plot both spectra
+# compare the magnitude spectra
 plt.figure(figsize=(12, 5))
 plt.plot(freq_x, mag_x, label="Original guitar")
 plt.plot(freq_y, mag_y, label="Time-varying delay output")
@@ -269,12 +262,11 @@ plt.xlim(0, 5000)
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-plt.savefig(f"../Exp2/plots/spectra_comparison_fm{fm}.png", dpi=300)
+plt.savefig(plot_dir /f"spectra_comparison_fm{fm}.png", dpi=300)
 plt.show()
 plt.close()
 
-# ====================================================
-# EXPERIMENT WITH DELAY VARIATION
+# try a smaller delay variation
 
 deltaD_ms = 2.0
 
@@ -292,7 +284,7 @@ print("Calculating processed spectrum...")
 freq_y, mag_y = dft_magnitude(y_segment, fs)
 print("spectra calculated.")
 
-# Plot original and processed signals
+# compare the original and processed waveforms
 N = len(y_test)
 t = np.arange(N) / fs
 
@@ -315,11 +307,11 @@ plt.legend()
 plt.grid(True)
 plt.tight_layout()
 
-plt.savefig(f"../Exp2/plots/waveform_comparison_dD{deltaD_ms}.png", dpi=300)
+plt.savefig(plot_dir / f"waveform_comparison_dD{deltaD_ms}.png", dpi=300)
 plt.show()
 plt.close(fig2)
 
-# Plot both spectra
+# compare the magnitude spectra
 
 plt.figure(figsize=(12, 5))
 plt.plot(freq_x, mag_x, label="Original guitar")
@@ -331,7 +323,7 @@ plt.xlim(0, 5000)
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-plt.savefig(f"../Exp2/plots/spectra_comparison_dD{deltaD_ms}.png", dpi=300)
+plt.savefig(plot_dir /f"spectra_comparison_dD{deltaD_ms}.png", dpi=300)
 plt.show()
 plt.close()
 
