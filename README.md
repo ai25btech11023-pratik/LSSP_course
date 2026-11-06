@@ -60,12 +60,12 @@ in samples.
 
 **Parameters to report**
 
-- **Input audio file and sampling frequency:** Set from the selected recording.
 - **Reflection amplitudes:** The values of \(a_i\) defined in `exp1.py`.
 - **Reflection delays:** The values of \(d_i\) defined in `exp1.py`.
 - **Number of reflections:** \(M\), the number of delayed reflection taps, excluding the direct impulse.
 - **Spectrum display:** the plot uses linear magnitude for spectrum plot against frequency.
-- 
+
+
 ### Experiment 2 — Musical Effect using an LTV System
 
 **Goal:** Create a time-varying delay effect. Unlike a fixed-delay echo, the delay changes periodically over time.
@@ -84,7 +84,7 @@ $$
 
 where:
 
-- $\alpha$ is the delayed-signal mix/gain.
+- $\alpha$ is the delayed-signal gain.
 - $D_0$ is the nominal delay.
 - $\Delta D$ is the delay variation.
 - $f_m$ is the modulation frequency.
@@ -100,7 +100,7 @@ where:
 
 **Parameters to report**
 
-- $\alpha$: Delayed-signal gain/mix in `exp2.py`.
+- $\alpha$: Delayed-signal gain in `exp2.py`.
 - $D_0$ : Nominal delay in ms in `exp2.py`.
 - $\Delta D$: Delay variation in ms in `exp2.py`.
 - $f_m$: Modulation frequency in Hz.
@@ -127,38 +127,40 @@ python -m pip install numpy matplotlib soundfile pathlib
 
 ## Running the Code
 
+
 1. Place the input WAV recording in the recordings directory.
-2. Open a terminal in the LSSP_course directory.
-3. Install the dependencies required by your imports.
-4. Go to desired directory for experiment to be run.
-5. for instance  Experiment 1:
+2. Extract the ZIP and open a terminal in `LSSP_course` directory.
 
-   ```bash
-   cd Exp1
-   python exp1.py
-   ```
+3. run these command: 
+```sh
+python -m pip install numpy soundfile matplotlib
 
-6. Run Experiment 2:
+cd Exp1
+python exp1.py
 
-   ```bash
-   cd Exp2
-   python task2.py
-   ```
+cd ../Exp2
+python exp2.py
 
-7. Run Experiment 3:
+cd ../Exp3
+python exp3_group19.py
+```
 
-   ```bash
-   cd Exp3
-   python exp3.py
-   ```
+Close each plot window in Exp 1 and Exp 2 to continue. Each experiment saves its WAVs in `Audio_outputs/` and its figures in `plots/`.
 
 ## Input Dataset and Audio
 
-
+**1**
 - **Dataset name:** Musical instrument detection
 - **Dataset URL:** https://www.kaggle.com/code/dima806/musical-instrument-detection/input
-- **Selected audio file:** LP_Lick10_FN.wav (guitar), 2_ray-chen_bwv1004_mov5.wav (violin)
+- **Selected audio file:** `LP_Lick10_FN.wav` (guitar), `2_ray-chen_bwv1004_mov5.wav` (violin) for Exp 1 and 2
 - **Sampling frequency:** 44.1 kHz
+- 
+**2**
+- **Dataset name:** gtzan dataset music genre classification
+- **Dataset URL:** https://www.kaggle.com/datasets/andradaolteanu/gtzan-dataset-music-genre-classification
+- **Selected audio file:** `recordings/exp3_audio.wav` for Exp 3, trimmed from `rock.00028.wav`.
+
+Both input WAVs are at 44.1 kHz.
 - **Audio license / usage conditions:** This Dataset is collected From some scraping from few sites & some open source datasets.
 
 ## Outputs
